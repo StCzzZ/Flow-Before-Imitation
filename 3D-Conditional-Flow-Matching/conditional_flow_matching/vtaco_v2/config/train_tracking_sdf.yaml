@@ -1,0 +1,186 @@
+hydra:
+  run:
+    dir: ./outputs/tracking_sdf/${datamodule.obj_class}
+
+datamodule_name: VTacODataModule
+datamodule:
+  root_dir: /mnt/public/datasets/zhenjun/VTacO_Track/v00
+  obj_class: "001"
+  tracking: True  
+  train_all: False   
+  sample_point_num: 2048  
+  sample_pc_num: 512  
+  pc_noise: 0.005
+  batch_size: 6
+  num_workers: 32
+
+trackingmodule_name: SDFPipeline
+trackingmodule:
+  training_param:
+    optimizer: "Adam"
+    lr: 0.0001
+  
+  # pointnet_param:
+  #   nn_channels: [3, 32, 64, 96]
+  #   feature_transform: False
+  pointnet_param:
+    in_channel: 3
+    out_channel: 128
+
+  Corr_param:
+    mlp1_mask: [256, 128, 64, 32]
+    mlp2_mask: [32, 16, 8]
+
+    mlp_dist_mask: [4, 32, 32, 64]
+    # pointnet_dist_param:
+    #   nn_channels: [4, 16, 32, 64]
+    #   feature_transform: False
+
+    pointnet2_param:
+      sa1:
+        npoint: 128
+        nsample: 32
+        radius: 0.4
+        mlp: [64,64,128]
+        bn: True
+        use_xyz: True
+      sa2:
+        mlp: [128,128,128]
+        bn: True
+        use_xyz: False
+      fp:
+        mlp: [[256, 256], [320, 128], [128, 128, 64]]
+        bn: True
+
+    mlp_flow: [64, 32, 16, 3]
+
+    # pointnet_flow_param:
+    #   nn_channels: [3, 8, 16, 24]
+    #   feature_transform: False
+
+    # pointnet_flow_param:
+    #   nn_channels: [3, 16, 32, 48]
+    #   feature_transform: False
+
+    pointnet_flow_param:
+      in_channel: 3
+      out_channel: 64
+
+    transformer_param:
+      use_xyz: True
+      input_size: 4000
+      d_model: 64
+      num_layers: 1
+      key_feature_dim: 128
+      with_pos_embed: True
+      encoder_pos_embed_input_dim: 3
+      decoder_pos_embed_input_dim: 3
+      fea_channels: [64, 64, 32]
+      feat_slim_last_layer: True
+    
+
+  unet3d_param:
+    num_levels: 4
+    f_maps: 32
+    in_channels: 32
+    out_channels: 32
+  
+  grid_param:
+    reso_grid: 64
+    grid_dim: 32
+    padding: 0.1
+    sample_mode: bilinear
+  
+  decoder_param:
+    input_dim: 3
+    hidden_size: 32
+    n_blocks: 5
+  
+  vis_param:
+    vis_every: 50
+    nx: 64
+    vis_point_every_split: 100000
+    print_time: True
+    vis_flow: False
+
+  loss_items: {"sdf": 1, "flow": 1, "hand": 1}
+  # loss_items: {"hand": 1}
+
+  hand_pose_cfg_file: /mnt/homes/zhenjun/vtaco_v2/config/hand_pose_tracking.yaml
+  hand_pose_module_ckpt: ../../hand_pose_tracking/${datamodule.obj_class}/checkpoints/last.ckpt
+
+  hand_feat_encoder_param:
+    pointnet_param:
+      in_channel: 3
+      out_channel: 128
+
+    transformer_param:
+      use_xyz: True
+      input_size: 4000
+      d_model: 128
+      num_layers: 1
+      key_feature_dim: 128
+      with_pos_embed: True
+      encoder_pos_embed_input_dim: 3
+      decoder_pos_embed_input_dim: 3
+      fea_channels: [128, 64, 32]
+      feat_slim_last_layer: True
+
+  hand_sdf_decoder_param:
+    feat_mlp_param:
+      nn_channels: [48, 48, 32]
+
+    decoder_param:
+      input_dim: 3
+      hidden_size: 32
+      n_blocks: 5
+
+    grid_param:
+      padding: 0.6
+
+  # hand_decoder_param:
+  #   transformer_param:
+  #     use_xyz: True
+  #     input_size: 4000
+  #     d_model: 128
+  #     num_layers: 1
+  #     key_feature_dim: 128
+  #     with_pos_embed: True
+  #     encoder_pos_embed_input_dim: 3
+  #     decoder_pos_embed_input_dim: 3
+  #     fea_channels: [128, 128, 128]
+  #     feat_slim_last_layer: True
+
+  #   manolayer_param: 
+  #     center_idx: 0
+  #     flat_hand_mean: True
+  #     ncomps: 45
+  #     side: right
+  #     mano_root: /mnt/homes/zhenjun/vtaco_v2/components/manopth/mano/models
+  #     use_pca: False
+  #     root_rot_mode: axisang
+  #     joint_rot_mode: axisang
+  #     robust_rot: False
+  #     return_transf: True
+  #     return_full_pose: True
+
+    
+
+ckpt_param:
+  dirpath: "checkpoints"
+  filename: "{epoch}-{iou:.4f}"
+  monitor: 'iou'
+  save_last: True
+  save_top_k: 5
+  mode: 'max'
+  save_weights_only: False
+  every_n_epochs: 1
+  save_on_train_epoch_end: True
+
+
+trainer:
+  gpus: [0]
+  check_val_every_n_epoch: 10
+  max_epochs: 200
+  # max_steps: 30000
+  resume_from_checkpoint: ./checkpoints/last.ckpt

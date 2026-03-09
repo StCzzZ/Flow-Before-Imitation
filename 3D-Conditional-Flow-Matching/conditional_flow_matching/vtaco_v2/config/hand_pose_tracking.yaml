@@ -1,0 +1,81 @@
+hydra:
+  run:
+    dir: ./outputs/hand_pose_tracking/${datamodule.obj_class}
+
+datamodule_name: VTacODataModule
+datamodule:
+  root_dir: /mnt/public/datasets/zhenjun/VTacO_Track/v00
+  obj_class: "001"
+  tracking: True  
+  train_all: False   
+  sample_point_num: 2048  
+  sample_pc_num: 512  
+  pc_noise: 0.005
+  batch_size: 6
+  num_workers: 32
+
+trackingmodule_name: HandPoseTrackingModule
+trackingmodule:
+  assets_dir: /mnt/homes/zhenjun/vtaco_v2/assets
+  training_param:
+    optimizer: "Adam"
+    lr: 0.0001
+
+  vis_param:
+    vis_every: 50
+    print_time: True
+
+  loss_items: {"hand": 1}
+
+  hand_decoder_param:
+    pointnet_param:
+      in_channel: 3
+      out_channel: 128
+
+    num_kp: 21
+    dense_soft_factor: 1.0
+    layer_hidden_dim: 64
+    use_attention: True
+
+    transformer_param:
+      use_xyz: True
+      input_size: 4000
+      d_model: 128
+      num_layers: 1
+      key_feature_dim: 128
+      with_pos_embed: True
+      encoder_pos_embed_input_dim: 3
+      decoder_pos_embed_input_dim: 3
+      fea_channels: [128, 128, 128]
+      feat_slim_last_layer: True
+
+    manolayer_param: 
+      center_idx: 0
+      flat_hand_mean: True
+      ncomps: 45
+      side: right
+      mano_root: /mnt/homes/zhenjun/vtaco_v2/components/manopth/mano/models
+      use_pca: False
+      root_rot_mode: axisang
+      joint_rot_mode: axisang
+      robust_rot: False
+      return_transf: True
+      return_full_pose: True
+
+ckpt_param:
+  dirpath: "checkpoints"
+  filename: "{epoch}-{hand_jtr_cd:.4f}"
+  monitor: 'hand_jtr_cd'
+  save_last: True
+  save_top_k: 5
+  mode: 'min'
+  save_weights_only: False
+  every_n_epochs: 1
+  save_on_train_epoch_end: True
+
+trainer:
+  gpus: [1]
+  check_val_every_n_epoch: 10
+  max_epochs: 200
+  # max_steps: 30000
+  resume_from_checkpoint: ./checkpoints/last.ckpt

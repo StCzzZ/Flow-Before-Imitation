@@ -1,0 +1,55 @@
+name: isaaclab_cube
+
+task_name: cube 
+
+shape_meta: &shape_meta
+  # acceptable types: rgb, low_dim
+  obs:
+    point_cloud:
+      shape: [1024, 6]
+      type: point_cloud
+    agent_pos:
+      shape: [24]
+      type: low_dim
+    contact_forces:
+      shape: [24]
+      type: low_dim
+  action:
+    shape: [20]
+
+env_runner:
+  _target_: conditional_flow_matching.env_runner.isaaclab_runner.IsaaclabRunner
+  eval_episodes: 20 
+  max_steps: 300
+  n_obs_steps: ${n_obs_steps}
+  n_action_steps: ${n_action_steps}
+  fps: 10
+  task_name: cube
+  render_size: 84
+  use_point_crop: ${policy.use_point_crop}
+  use_contact_forces: ${use_contact_forces}
+  env_options: # available keys: exept([-h] [--headless] [--livestream {0,1,2}] [--enable_cameras] [--device DEVICE] [--verbose] [--experience EXPERIENCE])
+    disable_fabric: False
+    num_envs: 1  # only 1 env is supported for now
+    task: ShadowInHandPushPCTactileSingleCam-v0
+    camera_debug: False
+    point_cloud_debug: False
+    camera_numbers: 1
+    headless:  True
+    enable_cameras: True   # has to be true as long as we are using point cloud
+
+
+
+dataset:
+  _target_: conditional_flow_matching.dataset.isaaclab_dataset.IsaaclabDataset
+  zarr_path: cfm_isaac/3D-Conditional-Flow-Matching/data/isaaclab_Sheep_expert_FaceDown_Sheep_1cam_backup.zarr
+  horizon: ${horizon}
+  pad_before: ${eval:'${n_obs_steps}-1'}
+  pad_after: ${eval:'${n_action_steps}-1'}
+  seed: 42
+  val_ratio: 0.02
+  # max_train_episodes: 4000
+  max_train_episodes: 10000
+  use_contact_forces: ${use_contact_forces}
+
+  
