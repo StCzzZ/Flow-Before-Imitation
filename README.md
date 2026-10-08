@@ -4,7 +4,7 @@
 
 <a href="https://sites.google.com/view/dex-fbi"><strong>Project Page</strong></a>
   |
-    <a href="https://arxiv.org/abs/2508.14441"><strong>arXiv</strong></a>
+    <a href="https://ieeexplore.ieee.org/abstract/document/11696089"><strong>paper</strong></a>
     |
 
   Yijin Chen∗, Wenqiang Xu∗, Zhenjun Yu, Tutian Tang, Yutong Li, Siqiong Yao, Cewu Lu
@@ -26,12 +26,17 @@
 
 If you find our work useful, please consider citing:
 ```
-@article{chen2025fbi,
-  title={FBI: Learning Dexterous In-hand Manipulation with Dynamic Visuotactile Shortcut Policy},
+@INPROCEEDINGS{11696089,
   author={Chen, Yijin and Xu, Wenqiang and Yu, Zhenjun and Tang, Tutian and Li, Yutong and Yao, Siqiong and Lu, Cewu},
-  journal={arXiv preprint arXiv:2508.14441},
-  year={2025}
-}
+  booktitle={2026 IEEE International Conference on Robotics and Automation (ICRA)}, 
+  title={Flow Before Imitation: Learning Dexterous In-hand Manipulation with Dynamic Visuotactile Shortcut Policy}, 
+  year={2026},
+  volume={},
+  number={},
+  pages={12514-12521},
+  keywords={Color;Hands;Modeling;Contacts;Printing;Fluid flow;Visual systems;Visualization;Clouds;Modules (abstract algebra)},
+  doi={10.1109/ICRA57385.2026.11696089}}
+
 ```
 
 
